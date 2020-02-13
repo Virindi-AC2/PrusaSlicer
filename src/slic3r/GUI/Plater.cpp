@@ -2748,18 +2748,9 @@ void Plater::priv::sla_optimize_rotation() {
     m_ui_jobs.start(Jobs::Rotoptimize);
 }
 
-arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const {
-
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    assert(bed_shape_opt);
-
-    if (!bed_shape_opt) return {};
-
-    auto &bedpoints = bed_shape_opt->values;
-    Polyline bedpoly; bedpoly.points.reserve(bedpoints.size());
-    for (auto &v : bedpoints) bedpoly.append(scaled(v));
-
-    return arrangement::BedShapeHint(bedpoly);
+arrangement::BedShapeHint Plater::priv::get_bed_shape_hint() const
+{
+    return Model::get_bed_shape_hint(*config);
 }
 
 void Plater::priv::find_new_position(const ModelInstancePtrs &instances,
@@ -2794,11 +2785,8 @@ void Plater::priv::ArrangeJob::process() {
 
     // FIXME: I don't know how to obtain the minimum distance, it depends
     // on printer technology. I guess the following should work but it crashes.
-    double dist = 6; // PrintConfig::min_object_distance(config);
-    if (plater().printer_technology == ptFFF) {
-        dist = PrintConfig::min_object_distance(plater().config);
-    }
-
+    double dist = plater().config->min_object_distance();
+    
     coord_t min_d = scaled(dist);
     auto count = unsigned(m_selected.size());
     arrangement::BedShapeHint bedshape = plater().get_bed_shape_hint();
