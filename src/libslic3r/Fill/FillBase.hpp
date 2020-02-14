@@ -12,6 +12,7 @@
 #include "../BoundingBox.hpp"
 #include "../PrintConfig.hpp"
 #include "../Utils.hpp"
+#include "../Layer.hpp"
 
 namespace Slic3r {
 
@@ -40,6 +41,8 @@ struct FillParams
     // we were requested to complete each loop;
     // in this case we don't try to make more continuous paths
     bool        complete;
+    
+    LayerRegion *layerm;
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

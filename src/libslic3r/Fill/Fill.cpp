@@ -229,6 +229,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         params.density = float(0.01 * density);
 //        params.dont_adjust = true;
         params.dont_adjust = false;
+        params.layerm = &layerm;
         Polylines polylines = f->fill_surface(&surface, params);
         if (polylines.empty())
             continue;

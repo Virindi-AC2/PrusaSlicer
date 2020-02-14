@@ -12,6 +12,15 @@
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
 
+//..........
+#include "../ExPolygonCollection.hpp"
+#include "../Flow.hpp"
+#include "../Polygon.hpp"
+#include "../PrintConfig.hpp"
+#include "../SurfaceCollection.hpp"
+#include "../Print.hpp"
+
+
 #include "FillRectilinear2.hpp"
 
 // #define SLIC3R_DEBUG
@@ -777,11 +786,30 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     coord_t line_spacing = coord_t(scale_(this->spacing) / params.density);
 
     // On the polygons of poly_with_offset, the infill lines will be connected.
+    coord_t modifiedoffset1;
+    coord_t modifiedoffset2;
+    double v_grow_amt = params.layerm->region()->config().get_abs_value("infill_overlap",this->spacing);
+    if (surface->is_top()
+		|| surface->surface_type == stInternalBridge
+		|| surface->surface_type == stBottomBridge
+		)
+    {
+		modifiedoffset1 = scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing);
+		modifiedoffset2 = scale_(this->overlap - 0.5 * this->spacing);
+	}
+	else
+	{
+		modifiedoffset1 = scale_(this->overlap - v_grow_amt - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing);
+		modifiedoffset2 = scale_(this->overlap - v_grow_amt - 0.5 * this->spacing);
+	}
+    
     ExPolygonWithOffset poly_with_offset(
         surface->expolygon, 
         - rotate_vector.first, 
-        scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing),
-        scale_(this->overlap - 0.5 * this->spacing));
+        //scale_(this->overlap - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing),
+        modifiedoffset1,
+        //scale_(this->overlap - 0.5 * this->spacing));
+        modifiedoffset2);
     if (poly_with_offset.n_contours_inner == 0) {
         // Not a single infill line fits.
         //FIXME maybe one shall trigger the gap fill here?
