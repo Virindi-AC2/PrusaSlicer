@@ -2914,6 +2914,21 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // check again whether the new travel path still needs a retraction
         needs_retraction = this->needs_retraction(travel, role);
         //if (needs_retraction && m_layer_index > 1) exit(0);
+        
+        //Always retract when exiting at a perimeter
+        //This avoids drips during the travel removing material from the perimeter
+        if (
+				(
+					(role == erPerimeter)
+					||
+					(role == erExternalPerimeter)
+					||
+					(role == erOverhangPerimeter)
+				)
+				&&
+				(travel.length() >= scale_(EXTRUDER_CONFIG(retract_before_travel)))
+				)
+			needs_retraction = true;
     }
     
     // Re-allow avoid_crossing_perimeters for the next travel moves
